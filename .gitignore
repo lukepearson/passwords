@@ -1,0 +1,5 @@
+/target
+**/*.rs.bk
+/data
+node_modules
+.DS_Store
