@@ -4,28 +4,43 @@ use std::fs::File;
 use std::path::Path;
 use std::io::Write;
 
+
 fn main() -> Result<()> {
-    let file = File::open("pwd.txt")?;
+    let mut hash_files = open_files();
+    let file = File::open("passwords.txt")?;
+    let mut count = 0i64;
+    println!("Processing file...");
     for line in BufReader::new(file).lines() {
-        let _ = add_hash(line?);
+        count += 1;
+        if count % 100000 == 0 {
+            println!("Processed {} lines", count);
+        }
+        let line_str = line.unwrap();
+        let first_two = line_str.get(0..2).expect("Unable to get first two letters");
+        let line_with_ending = "\n".to_string() + &line_str.to_string();
+        let line_bytes = line_with_ending.as_bytes();
+        let index = usize::from_str_radix(first_two, 16).expect("Unable to convert hex value to usize");
+        &mut hash_files[index].write_all(line_bytes)?;
     }
+    println!("Finished processing file ({} lines)", count);
     Ok(())
 }
 
-fn add_hash(line: String)-> Result<()> {
+fn open_files() -> Vec<File> {
+    let mut files: Vec<File> = Vec::new();
 
-    let first_two = line.get(0..2).expect("Unable to get first two letters");
-    let line_with_ending = "\n".to_string() + &line.to_string();
-    let data_path:String = format!("data/{}", first_two);
-    let path = Path::new(&data_path);
+    for i in 0..256 {
+        let letters = format!("{:02X}", i);
+        println!("{}", letters);
+        let data_path:String = format!("data/{}", letters);
+        let path = Path::new(&data_path);
+        let file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(path)
+            .expect("Unable to create or open file");
 
-    let mut file = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open(path)
-        .expect("Unable to create or open file");
-
-    let line_bytes = line_with_ending.as_bytes();
-    file.write_all(line_bytes)?;
-    Ok(())
+        files.push(file);
+    }
+    return files;
 }
