@@ -3,17 +3,22 @@ use std::fs::OpenOptions;
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
+use std::time::Instant;
 
 
 fn main() -> Result<()> {
+    let start = Instant::now();
     let mut hash_files = open_files();
     let file = File::open("passwords.txt")?;
-    let mut count = 0i64;
+    let mut count = 0u64;
     println!("Processing file...");
     for line in BufReader::new(file).lines() {
         count += 1;
         if count % 100000 == 0 {
-            println!("Processed {} lines", count);
+            let elapsed = start.elapsed().as_millis();
+            let lps = (count / elapsed as u64) * 1000;
+            println!("Processed {} lines in {:?}ms ({} per second)", count, elapsed, lps);
+
         }
         let line_str = line.unwrap();
         let first_two = line_str.get(0..2).expect("Unable to get first two letters");
