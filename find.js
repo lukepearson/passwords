@@ -160,8 +160,9 @@ function get_result(term) {
       const file_path = path.resolve(path.join(__dirname, 'data', first_two));
 
       try {
-        fs.accessSync(file_path, 'r');
+        fs.accessSync(file_path, fs.constants.R_OK);
       } catch (error) {
+        console.error(error);
         return resolve({
           term: term.trim(), hash: hash.trim(), first_two, response: '', count: '0', percent: '0', search_time: '0ms'
         })
