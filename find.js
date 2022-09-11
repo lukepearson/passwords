@@ -1,10 +1,11 @@
 #!/usr/local/bin/node
 
 let startTime = new Date()
-const fs = require('fs');
-const path = require('path');
 const arg = require('arg');
-const crypto = require('crypto');
+const HashLookup = require('./hashLookup');
+const S3FileAccessor = require('./s3FileAccessor');
+const FsFileAccessor = require('./fsFileAccessor');
+const { S3 } = require("@aws-sdk/client-s3");
 
 const args = arg({
   // Types
@@ -16,6 +17,11 @@ const args = arg({
 });
 
 const { execSync, exec } = require('child_process');
+
+const s3FileAccessor = S3FileAccessor(new S3());
+const fsFileAccessor = FsFileAccessor();
+const hashLookup = HashLookup(fsFileAccessor);
+
 let terms = args._;
 
 if (!terms || !terms.length) {
@@ -151,31 +157,8 @@ async function go() {
 }
 
 function get_result(term) {
-  let resultStartTime = new Date()
-  return new Promise(async (resolve) => {
-    return sha1(term).then(result => {
-      const hash = result;
-      const letters = hash.split('');
-      const first_two = letters.slice(0,2).join('').toUpperCase();
-      const file_path = path.resolve(path.join(__dirname, 'data', first_two));
-
-      try {
-        fs.accessSync(file_path, fs.constants.R_OK);
-      } catch (error) {
-        console.error(error);
-        return resolve({
-          term: term.trim(), hash: hash.trim(), first_two, response: '', count: '0', percent: '0', search_time: '0ms'
-        })
-      }
-
-      exec(`rg ${hash.trim()} ${__dirname}/data/${first_two}`, (err, response) => {
-        const count = response.split(':').pop().trim()
-        const search_time = String(new Date() - resultStartTime) + 'ms'
-        return resolve({
-          term: term.trim(), hash: hash.trim(), first_two, response, count, percent: '0', search_time
-        })
-      })
-    })
+  return new Promise((resolve) => {
+    return resolve(hashLookup.findHashByTerm(term));
   })
 }
 
@@ -219,19 +202,4 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
-function sha1(string) {
-  const hash = crypto.createHash('sha1');
-  return new Promise((resolve, reject) => {
-    hash.on('readable', () => {
-      const data = hash.read();
-      if (data) {
-        resolve(data.toString('hex').toUpperCase());
-      }
-      reject('Unable to hash ' + string);
-    });
-    hash.write(string);
-    hash.end();
-  });
-}
-
-go()
+go();
