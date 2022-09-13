@@ -1,22 +1,9 @@
-#!/usr/local/bin/node
-
 let startTime = new Date()
-const arg = require('arg');
+const path = require("path");
 const HashLookup = require('./hashLookup');
 const S3FileAccessor = require('./s3FileAccessor');
 const FsFileAccessor = require('./fsFileAccessor');
 const { S3Client } = require("@aws-sdk/client-s3");
-
-const args = arg({
-  // Types
-  '--help':       Boolean,
-  '--all-cases':  Boolean,
-  '--anagrams':   Boolean,
-  '-a':        '--anagrams',
-  '-c':        '--all-cases',
-});
-
-const { execSync, exec } = require('child_process');
 
 const s3FileAccessor = S3FileAccessor(
   new S3Client({ region: 'eu-west-1' }),
@@ -27,14 +14,6 @@ const fsFileAccessor = FsFileAccessor(
 );
 const hashLookup = HashLookup(s3FileAccessor);
 
-let terms = args._;
-
-if (!terms || !terms.length) {
-  throw new Error('You must pass in a search term');
-}
-
-const allCases = !!args['--all-cases']
-const anyOrder = !!args['--anagrams']
 const clc = require('cli-color');
 const CLI = require('clui');
 const Line = CLI.Line;
@@ -57,31 +36,22 @@ function permut(string) {
 
     // Cause we don't want any duplicates:
     if (string.indexOf(char) != i) // if char was used already
-      continue; // skip it this time
+    continue; // skip it this time
 
     var remainingString = string.slice(0, i) + string.slice(i + 1, string.length); //Note: you can concat Strings via '+' in JS
 
     for (var subPermutation of permut(remainingString))
-      permutations.push(char + subPermutation)
+    permutations.push(char + subPermutation)
   }
   return permutations;
 }
 
-async function go() {
-  let outputBuffer
-  console.clear();
+async function go(terms, options) {
+  const { allCases, anyOrder } = options;
 
   console.log("Searching...")
 
   try {
-
-    outputBuffer = new LineBuffer({
-      x: 0,
-      y: 0,
-      width: 'console',
-      height: 'console'
-    });
-
     let prom_uhhh_sesssss = []
 
     if (allCases) {
@@ -116,10 +86,6 @@ async function go() {
 
     let results = await Promise.all(prom_uhhh_sesssss)
 
-    console.clear();
-
-    add_header(outputBuffer);
-
     results = results.sort((a, b) => {
       return Number(a.count) <= Number(b.count) ? 1 : -1
     })
@@ -131,32 +97,12 @@ async function go() {
     results = results.map(a => {
       a.percent = (a.count / max_count) * 100
       return a;
-    })
+    });
 
-    results.forEach(result => {
-      if (Number(result.count) > 0) {
-        add_result(outputBuffer, result)
-      } else {
-        not_found(outputBuffer, result)
-      }
-    })
-
-    new Line(outputBuffer)
-      .column("".padStart(120, '-'), 120)
-      .fill()
-      .store();
-
-    new Line(outputBuffer)
-      .column(String((new Date() - startTime)/1000) + 's')
-      .fill()
-      .store();
-
-    outputBuffer.output();
-
+    return results;
   } catch (error) {
     console.log(error)
-    process.exit(1)
-    return not_found(outputBuffer, result);
+    throw error;
   }
 }
 
@@ -164,44 +110,22 @@ async function get_result(term) {
   return hashLookup.findHashByTerm(term);
 }
 
-function add_header(outputBuffer) {
-  new Line(outputBuffer)
-    .column('Password', c1, [ clc.blackBright ])
-    .column('Found', c2, [ clc.blackBright ])
-    .column('Hash', c3, [ clc.blackBright ])
-    .column('Relative popularity', c4, [ clc.blackBright ])
-    .column('Count', c5, [ clc.blackBright ])
-    .column('Time', 10, [ clc.blackBright ])
-    .fill()
-    .store();
-}
-
-function add_result(outputBuffer, result) {
-  new Line(outputBuffer)
-    .column(result.term, c1, [ clc.yellow ])
-    .column('FOUND', c2, [ clc.green ])
-    .column(result.hash, c3)
-    .column(Gauge(result.count, max_count, c4-5, max_count), c4)
-    .column(result.count, c5)
-    .column(result.search_time, 10)
-    .fill()
-    .store();
-}
-
-function not_found(outputBuffer, result) {
-  new Line(outputBuffer)
-    .column(result.term, c1, [ clc.blackBright ])
-    .column('NOT FOUND', c2, [ clc.red ])
-    .column(result.hash, c3)
-    .column(Gauge(result.count, max_count, c4-5, max_count), c4)
-    .column(result.count, c5)
-    .column(result.search_time, 10)
-    .fill()
-    .store();
-}
-
 function onlyUnique(value, index, self) { 
   return self.indexOf(value) === index;
 }
 
-go();
+async function handler(event) {
+  const { allCases, passwords, anyOrder } = event.queryStringParameters;
+  const terms = passwords.split(',');
+  const results = await go(terms, { allCases, anyOrder });
+  const response = results.map(({
+    term, hash, count, percent, search_time
+  }) => ({ term, hash, count, percent, search_time }));
+
+  return {
+    statusCode: '200',
+    body: JSON.stringify(response),
+  };
+}
+
+module.exports = { handler };

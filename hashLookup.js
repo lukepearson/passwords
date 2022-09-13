@@ -24,11 +24,10 @@ module.exports = (fileAccessor) => ({
       const hash = result;
       const letters = hash.split('');
       const first_two = letters.slice(0,2).join('').toUpperCase();
-      const file_path = path.resolve(path.join(__dirname, 'data', first_two));
 
       let file = '';
       try {
-        file = await fileAccessor.read(file_path);
+        file = await fileAccessor.read(first_two);
       } catch (error) {
         throw error;
       }

@@ -6,3 +6,4 @@ node_modules
 passwords.7Z
 passwords.txt
 yarn-error.log
+export-config-env-vars.sh
