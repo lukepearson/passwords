@@ -1,31 +1,14 @@
-let startTime = new Date()
-const path = require("path");
 const HashLookup = require('./hashLookup');
 const S3FileAccessor = require('./s3FileAccessor');
-const FsFileAccessor = require('./fsFileAccessor');
 const { S3Client } = require("@aws-sdk/client-s3");
 
 const s3FileAccessor = S3FileAccessor(
   new S3Client({ region: 'eu-west-1' }),
   'passwords/data'
 );
-const fsFileAccessor = FsFileAccessor(
-  path.resolve(path.join(__dirname, 'data'))
-);
 const hashLookup = HashLookup(s3FileAccessor);
 
-const clc = require('cli-color');
-const CLI = require('clui');
-const Line = CLI.Line;
-const LineBuffer = CLI.LineBuffer;
-const Gauge = CLI.Gauge;
-
 let max_count = 7671364;
-const c1 = 20;
-const c2 = 10;
-const c3 = 42;
-const c4 = 45;
-const c5 = 10;
 
 function permut(string) {
   if (string.length < 2) return string; // This is our break condition
@@ -115,7 +98,15 @@ function onlyUnique(value, index, self) {
 }
 
 async function handler(event) {
+  if (!event?.queryStringParameters?.passwords) {
+    return {
+      statusCode: '400',
+      body: JSON.stringify({ error: "Missing required query string parameter `passwords`" }),
+    };
+  }
+
   const { allCases, passwords, anyOrder } = event.queryStringParameters;
+
   const terms = passwords.split(',');
   const results = await go(terms, { allCases, anyOrder });
   const response = results.map(({
