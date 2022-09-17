@@ -3,8 +3,10 @@ const fs = require('fs');
 
 module.exports = (hashDbBasePath) => ({
   read: async (hashChunkPath) => {
+    const resolvedChunkPath = path.join(hashDbBasePath, hashChunkPath);
+
     try {
-      fs.accessSync(hashChunkPath, fs.constants.R_OK);
+      fs.accessSync(resolvedChunkPath, fs.constants.R_OK);
     } catch (error) {
       console.error(error);
       throw new Error("Unable to access file");
@@ -12,7 +14,7 @@ module.exports = (hashDbBasePath) => ({
 
     let file;
     try {
-      file = fs.readFileSync(path.join(hashDbBasePath, hashChunkPath));
+      file = fs.readFileSync(resolvedChunkPath);
     } catch (error) {
       console.error(error);
       throw new Error("Unable to read file");

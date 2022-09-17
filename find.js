@@ -2,10 +2,9 @@
 
 let startTime = new Date()
 const arg = require('arg');
+const path = require('path');
 const HashLookup = require('./hashLookup');
-const S3FileAccessor = require('./s3FileAccessor');
 const FsFileAccessor = require('./fsFileAccessor');
-const { S3Client } = require("@aws-sdk/client-s3");
 
 const args = arg({
   // Types
@@ -16,16 +15,10 @@ const args = arg({
   '-c':        '--all-cases',
 });
 
-const { execSync, exec } = require('child_process');
-
-const s3FileAccessor = S3FileAccessor(
-  new S3Client({ region: 'eu-west-1' }),
-  'passwords/data'
-);
 const fsFileAccessor = FsFileAccessor(
   path.resolve(path.join(__dirname, 'data'))
 );
-const hashLookup = HashLookup(s3FileAccessor);
+const hashLookup = HashLookup(fsFileAccessor);
 
 let terms = args._;
 
