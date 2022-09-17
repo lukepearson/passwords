@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const path = require('path');
 
 function sha1(string) {
   const hash = crypto.createHash('sha1');
@@ -41,7 +40,12 @@ module.exports = (fileAccessor) => ({
       const search_time = String(new Date() - resultStartTime) + 'ms'
 
       return {
-        term: term.trim(), hash: hash.trim(), first_two, hashLine, count, percent: '0', search_time
+        term: term.trim(),
+        hash: hash.trim(),
+        first_two,
+        count,
+        percent: '0',
+        search_time
       };
     });
   },

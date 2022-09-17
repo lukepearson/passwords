@@ -2,7 +2,9 @@
 
 let startTime = new Date()
 const arg = require('arg');
+const axios = require('axios');
 const path = require('path');
+const PasswordService = require('./passwordService');
 const HashLookup = require('./hashLookup');
 const FsFileAccessor = require('./fsFileAccessor');
 
@@ -11,14 +13,29 @@ const args = arg({
   '--help':       Boolean,
   '--all-cases':  Boolean,
   '--anagrams':   Boolean,
+  '--remote':     Boolean,
   '-a':        '--anagrams',
   '-c':        '--all-cases',
+  '-r':        '--remote',
+  '-h':        '--help',
 });
 
-const fsFileAccessor = FsFileAccessor(
-  path.resolve(path.join(__dirname, 'data'))
-);
-const hashLookup = HashLookup(fsFileAccessor);
+const help = !!args['--help'];
+const allCases = !!args['--all-cases']
+const anyOrder = !!args['--anagrams']
+const useRemoteHashDb = args['--remote'];
+
+if (help) {
+  const filename = path.basename(process.argv[1]);
+  console.log('USAGE');
+  console.log(`\tnode ${filename} [OPTIONS] PASSWORD_TERM_1 [PASSWORD_TERM_2...]`);
+  console.log('\nOPTIONS\n');
+  console.log('\t-h, --help\tShow help');
+  console.log('\t-r, --remote\tUse remote API to look up passwords instead of local hash file index');
+  console.log('\nEXAMPLE\n');
+  console.log(`\tnode ${filename} -r love hunter22 bobbytables`);
+  process.exit(0);
+}
 
 let terms = args._;
 
@@ -26,8 +43,12 @@ if (!terms || !terms.length) {
   throw new Error('You must pass in a search term');
 }
 
-const allCases = !!args['--all-cases']
-const anyOrder = !!args['--anagrams']
+const fsFileAccessor = FsFileAccessor(
+  path.resolve(path.join(__dirname, 'data'))
+);
+const hashLookup = HashLookup(fsFileAccessor);
+const passwordService = PasswordService(axios);
+
 const clc = require('cli-color');
 const CLI = require('clui');
 const Line = CLI.Line;
@@ -50,12 +71,12 @@ function permut(string) {
 
     // Cause we don't want any duplicates:
     if (string.indexOf(char) != i) // if char was used already
-      continue; // skip it this time
+    continue; // skip it this time
 
     var remainingString = string.slice(0, i) + string.slice(i + 1, string.length); //Note: you can concat Strings via '+' in JS
 
     for (var subPermutation of permut(remainingString))
-      permutations.push(char + subPermutation)
+    permutations.push(char + subPermutation)
   }
   return permutations;
 }
@@ -103,16 +124,21 @@ async function go() {
 
     terms = terms.filter(onlyUnique);
 
-    terms.forEach(term => {
-      prom_uhhh_sesssss.push(get_result(term))
-    })
-
-    let results = await Promise.all(prom_uhhh_sesssss)
+    let results = [];
+    if (useRemoteHashDb) {
+      results = await passwordService.search(terms);
+    } else {
+      terms.forEach(term => {
+        prom_uhhh_sesssss.push(get_result(term))
+      });
+      results = await Promise.all(prom_uhhh_sesssss)
+    }
 
     console.clear();
 
     add_header(outputBuffer);
 
+    console.log(results)
     results = results.sort((a, b) => {
       return Number(a.count) <= Number(b.count) ? 1 : -1
     })
