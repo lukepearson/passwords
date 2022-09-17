@@ -136,9 +136,6 @@ async function go() {
 
     console.clear();
 
-    add_header(outputBuffer);
-
-    console.log(results)
     results = results.sort((a, b) => {
       return Number(a.count) <= Number(b.count) ? 1 : -1
     })
@@ -151,6 +148,8 @@ async function go() {
       a.percent = (a.count / max_count) * 100
       return a;
     })
+
+    add_header(outputBuffer);
 
     results.forEach(result => {
       if (Number(result.count) > 0) {
