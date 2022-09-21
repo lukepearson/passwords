@@ -116,6 +116,10 @@ async function handler(event) {
   return {
     statusCode: '200',
     body: JSON.stringify(response),
+    headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "OPTIONS,GET"
+    },
   };
 }
 

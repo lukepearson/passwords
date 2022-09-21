@@ -40,6 +40,9 @@ export class PasswordsStack extends cdk.Stack {
         ),
       },
       handler: fn,
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['*']
+      }
     });
   }
 }
