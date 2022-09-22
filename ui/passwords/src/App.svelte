@@ -1,12 +1,12 @@
 <script>
-  import svelteLogo from './assets/svelte.svg';
+  import Logo from './assets/logo.png';
   import Password from './lib/Password.svelte';
 
   let passwordSearchTerms;
   let resultsPromise;
 
   const searchPasswords = async (term) => {
-    const res = await fetch(`https://pwnedpular.apps.sgfault.com?passwords=${term}`);
+    const res = await fetch(`https://pwnedpular.apps.sgfault.com/api?passwords=${term}`);
     const results = await res.json();
     console.log(results)
     return results;
@@ -22,14 +22,8 @@
 
 <main>
   <div>
-    <a href="https://vitejs.dev" target="_blank"> 
-      <img src="/vite.svg" class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank"> 
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
+    <img src={Logo} class="logo svelte" alt="Svelte Logo" />
   </div>
-  <h1>pwnedpopular</h1>
 
   <div class="card">
     <input bind:value={passwordSearchTerms}>
@@ -50,6 +44,9 @@
         <p>{error.message}</p>
     {/await}
   </div>
+    {:else}
+      <p>Enter a password above to find out how hard it's been pwned.</p>
+      <p>You can also enter a comma-separated list of passwords to check many at once. 100x the pwnage!</p>
   {/if}
 
 </main>
