@@ -6,14 +6,13 @@ import { aws_lambda_nodejs as nodeLambda, aws_lambda as lambda } from 'aws-cdk-l
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 interface PasswordsStackProps extends cdk.StackProps {
-  acmCertificateId: string;
   s3BucketArn: string;
 }
 
 export class PasswordsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PasswordsStackProps) {
     super(scope, id, props);
-    const { acmCertificateId, s3BucketArn } = props;
+    const { s3BucketArn } = props;
 
     const fn = new nodeLambda.NodejsFunction(this, 'PasswordsFn', {
       entry: `${__dirname}/../../handler.js`,
