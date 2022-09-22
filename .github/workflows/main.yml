@@ -30,4 +30,3 @@ jobs:
         run: |
           yarn --cwd ./infra deploy
           yarn --cwd ./ui deploy
-

@@ -8,7 +8,9 @@ if [[ ! -d dist/ ]]; then
 fi
 
 echo "Deploying app to S3..."
+set -x
 aws s3 sync --delete './dist/' 's3://pwnedpular.apps.sgfault.com/'
+set -x
 echo "Done"
 
 echo "Invalidating CloudFront cache..."
