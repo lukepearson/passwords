@@ -31,14 +31,6 @@ export class PasswordsStack extends cdk.Stack {
     }));
 
     const api = new apigateway.LambdaRestApi(this, "PasswordsAPI", {
-      domainName: {
-        domainName: 'pwnedpular.apps.sgfault.com',
-        certificate: Certificate.fromCertificateArn(
-          this,
-          'ACMCertificate',
-          `arn:aws:acm:eu-west-1:${this.account}:certificate/${acmCertificateId}`
-        ),
-      },
       handler: fn,
       defaultCorsPreflightOptions: {
         allowOrigins: ['*']
