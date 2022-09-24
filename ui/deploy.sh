@@ -7,10 +7,10 @@ if [[ ! -d dist/ ]]; then
     exit 1
 fi
 
+export AWS_REGION=eu-west-1
+
 echo "Deploying app to S3..."
-set -x
 aws s3 sync --delete './dist/' 's3://pwnedpular.apps.sgfault.com/'
-set -x
 echo "Done"
 
 echo "Invalidating CloudFront cache..."
