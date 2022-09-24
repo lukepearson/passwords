@@ -7,26 +7,29 @@
 
   const searchPasswords = async (term) => {
     const res = await fetch(`https://pwnedpular.apps.sgfault.com/api?passwords=${term}`);
-    const results = await res.json();
-    console.log(results)
-    return results;
-  }
+    return res.json();
+  };
 
   const handleSearchPasswordsBtnClicked = () => {
-    console.log(passwordSearchTerms);
     resultsPromise = searchPasswords(passwordSearchTerms);
-    //const { term, count, hash, percent, search_time } = resBody[0];
+  };
 
-  }
+  const handleSearchKeyPress = (e) => {
+    const EnterKeyCode = 13;
+    if (e.keyCode === EnterKeyCode) {
+      handleSearchPasswordsBtnClicked();
+      e.stopPropagation();
+    }
+  };
 </script>
 
 <main>
   <div>
-    <img src={Logo} class="logo svelte" alt="Svelte Logo" />
+    <img src={Logo} class="logo svelte" alt="pwned logo" />
   </div>
 
   <div class="card">
-    <input bind:value={passwordSearchTerms}>
+    <input bind:value={passwordSearchTerms} on:keydown={handleSearchKeyPress}>
     <button on:click={handleSearchPasswordsBtnClicked}>
       Search
     </button>
