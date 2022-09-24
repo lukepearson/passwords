@@ -7,5 +7,5 @@
 <ul>
     <li>Password: {password}</li>
     <li>Times Leaked: {timesLeaked}</li>
-    <li>Popularity: {Number.parseInt(popularityPct).toFixed(4)}%</li>
+    <li>Popularity: {popularityPct.toFixed(2)}%</li>
 </ul>

@@ -7,6 +7,10 @@ if [[ ! -d dist/ ]]; then
     exit 1
 fi
 
+# Need to set region to prevent AWS CLI command error
+# due to the AWS CLI being unable to detect the region in
+# GitHub Actions
+# https://notestoself.dev/posts/github-action-s3-botocore-awsrequest-process-255-error/
 export AWS_REGION=eu-west-1
 
 echo "Deploying app to S3..."
