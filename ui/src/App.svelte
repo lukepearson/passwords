@@ -36,20 +36,22 @@
   </div>
 
   {#if resultsPromise}
-  <div class="card">
-    {#await resultsPromise}
+    <div class="card">
+      {#await resultsPromise}
         <p>Searching...</p>
-    {:then results}
-      {#each results as { term: password, count: timesLeaked, percent: popularityPct }}
-        <Password {password} {timesLeaked} {popularityPct} />
-      {/each}
-    {:catch error}
+        {:then results}
+        {#each results as { term: password, count: timesLeaked, percent: popularityPct }}
+          <div class="result">
+            <Password {password} {timesLeaked} {popularityPct} />
+          </div>
+        {/each}
+        {:catch error}
         <p>{error.message}</p>
-    {/await}
-  </div>
-    {:else}
-      <p>Enter a password above to find out how hard it's been pwned.</p>
-      <p>You can also enter a comma-separated list of passwords to check many at once. 100x the pwnage!</p>
+      {/await}
+    </div>
+  {:else}
+    <p>Enter a password above to find out how hard it's been pwned.</p>
+    <p>You can also enter a comma-separated list of passwords to check many at once. 100x the pwnage!</p>
   {/if}
 
 </main>
@@ -68,5 +70,8 @@
   }
   .read-the-docs {
     color: #888;
+  }
+  .result {
+    margin-bottom: 1em;
   }
 </style>
