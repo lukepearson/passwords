@@ -29,18 +29,18 @@
   </div>
 
   <div class="card">
-    <input bind:value={passwordSearchTerms} on:keydown={handleSearchKeyPress}>
-    <button on:click={handleSearchPasswordsBtnClicked}>
-      Search
-    </button>
+    <input type="search" size="40" bind:value={passwordSearchTerms} on:keydown={handleSearchKeyPress} class="input-field">
   </div>
+  <button on:click={handleSearchPasswordsBtnClicked} class="search-btn">
+    Search
+  </button>
 
   {#if resultsPromise}
     <div class="card">
       {#await resultsPromise}
         <p>Searching...</p>
         {:then results}
-        {#each results as { term: password, count: timesLeaked, percent: popularityPct }}
+        {#each results.sort((a, b) => b.popularityPct - a.popularityPct) as { term: password, count: timesLeaked, percent: popularityPct }}
           <div class="result">
             <Password {password} {timesLeaked} {popularityPct} />
           </div>
@@ -73,5 +73,18 @@
   }
   .result {
     margin-bottom: 1em;
+  }
+  .input-field {
+    padding: 1em;
+    font-size: 1.1rem;
+    margin-right: 1.0rem;
+    border: 2px solid yellow;
+  }
+  .search-btn {
+    padding: 1em 3em;
+    border: 1px solid white;
+  }
+  .search-btn:hover {
+    background: rgba(255,255,255,0.2);
   }
 </style>
