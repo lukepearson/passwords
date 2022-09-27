@@ -78,7 +78,7 @@
     padding: 1em;
     font-size: 1.1rem;
     margin-right: 1.0rem;
-    border: 2px solid yellow;
+    border: 2px solid white;
   }
   .search-btn {
     padding: 1em 3em;
