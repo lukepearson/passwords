@@ -6,14 +6,13 @@ import { aws_lambda_nodejs as nodeLambda, aws_lambda as lambda } from 'aws-cdk-l
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 
 interface PasswordsStackProps extends cdk.StackProps {
-  acmCertificateId: string;
   s3BucketArn: string;
 }
 
 export class PasswordsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PasswordsStackProps) {
     super(scope, id, props);
-    const { acmCertificateId, s3BucketArn } = props;
+    const { s3BucketArn } = props;
 
     const fn = new nodeLambda.NodejsFunction(this, 'PasswordsFn', {
       entry: `${__dirname}/../../handler.js`,
@@ -31,15 +30,10 @@ export class PasswordsStack extends cdk.Stack {
     }));
 
     const api = new apigateway.LambdaRestApi(this, "PasswordsAPI", {
-      domainName: {
-        domainName: 'pwnedpular.apps.sgfault.com',
-        certificate: Certificate.fromCertificateArn(
-          this,
-          'ACMCertificate',
-          `arn:aws:acm:eu-west-1:${this.account}:certificate/${acmCertificateId}`
-        ),
-      },
       handler: fn,
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['*']
+      }
     });
   }
 }
